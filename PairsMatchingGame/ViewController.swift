@@ -154,7 +154,7 @@ class ViewController: UIViewController {
             cardView.frame = rects[i]
         }
         delay(0.3,self.hideCards)*/
-        delay(0.3) {
+        //delay(0.3) {
             self.ongoingShuffleAnimationsCount++
             UIView.animateWithDuration(1,
             animations: {
@@ -171,7 +171,7 @@ class ViewController: UIViewController {
                     self.hideCards()
                 }
             })
-        }
+       // }
     }
     
     func stepperValueChanged(stepper: UIStepper) {
