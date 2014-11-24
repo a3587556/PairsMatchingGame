@@ -29,7 +29,7 @@ class ViewController: UIViewController {
         // Do any additional setup after loading the view, typically from a nib.
         
         setupControls()
-        //setupCards()
+        setupLayout()
         shuffleCards()
     }
 
@@ -122,46 +122,64 @@ class ViewController: UIViewController {
         
         var toAdd = self.cardsCount - self.cardViews.count
         // TODO: Add card views
+        //let grid = gameLayout.forPairs(self.pairsCount)
         let grid = gameLayout.grid
         while (toAdd > 0) {
             let cardView = CardView()
-            let rectIndex = (toAdd % 1) + self.cardViews.count
-            let test = self.cardViews.count
+            //let rectIndex = (toAdd % 1) + self.cardViews.count
+            let rectIndex = (toAdd % 2) + 9 // put the add card to the centre of the window
             cardView.frame = grid[rectIndex]
-            cardViews.append(cardView)
+            cardView.addTarget(self, action: "tapCardView:", forControlEvents: UIControlEvents.TouchUpInside)
+            self.cardViews.append(cardView)
             self.view.addSubview(cardView)
             toAdd--
         }
 
     }
     
+    var ongoingShuffleAnimationsCount = 0
     func shuffleCards() {
-        for cardV in cardViews {
+        firstSelectedCardView = nil
+        /*for cardV in cardViews {
             cardV.removeFromSuperview()
         }
-        cardViews.removeAll(keepCapacity: true)
+        cardViews.removeAll(keepCapacity: true)*/
         
         matchedPairs = 0
-        let rects = gameLayout.forPairs(self.pairsCount)
-        for rectIndex in 0..<self.cardsCount {
-            let cardView = CardView()
-            cardView.addTarget(self, action: "tapCardView:", forControlEvents: UIControlEvents.TouchUpInside)
-            cardView.frame = rects[rectIndex]
-            cardViews.append(cardView)
-            self.view.addSubview(cardView)
-        }
-        self.assignCards()
         self.revealCards()
-        delay(1.0,hideCards)
-        
+        self.assignCards()
+        /*var rects = gameLayout.forPairs(self.pairsCount)
+        shuffle(&rects)
+        for (i,cardView) in enumerate(self.cardViews) {
+            cardView.frame = rects[i]
+        }
+        delay(0.3,self.hideCards)*/
+        delay(0.3) {
+            self.ongoingShuffleAnimationsCount++
+            UIView.animateWithDuration(1,
+            animations: {
+                var rects = self.gameLayout.forPairs(self.pairsCount)
+                shuffle(&rects)
+                for (i,cardView) in enumerate(self.cardViews) {
+                    cardView.frame = rects[i]
+                }
+                
+            },
+            completion: { completed in
+                self.ongoingShuffleAnimationsCount--
+                if self.ongoingShuffleAnimationsCount == 0 {
+                    self.hideCards()
+                }
+            })
+        }
     }
     
     func stepperValueChanged(stepper: UIStepper) {
-        //setupLayout()
-        shuffleCards()
+        self.setupLayout()
+        self.shuffleCards()
     }
     
-    func setupCards() {
+    /*func setupCards() {
       
             for rectIndex in 0..<self.cardsCount {
                 let cardView = CardView(frame: gameLayout.grid[rectIndex])
@@ -171,8 +189,8 @@ class ViewController: UIViewController {
                 self.view.addSubview(cardView)
             }
             assignCards()
-    }
-    
+    }*/
+
     func showWinMessage() {
         let alert = UIAlertController(title: "You Won", message: "Play another game!", preferredStyle: UIAlertControllerStyle.Alert)
         let shuffle = UIAlertAction(title: "Shuffle", style: UIAlertActionStyle.Default, handler: {
@@ -192,7 +210,6 @@ class ViewController: UIViewController {
     }
     
     func tapCardView(cardView: CardView) {
-        //println("test")
         if (cardView.selected == true) {
             return
         }
@@ -210,8 +227,11 @@ class ViewController: UIViewController {
         if first.card! == cardView.card! {
             self.foundMatchingPair(a: first, b: cardView)
         } else {
-            delay(0.3, hideCards)
-            self.matchedPairs = 0
+            delay(0.3) {
+            //self.matchedPairs = 0
+                cardView.selected = false
+                first.selected = false
+            }
         }
     }
 
